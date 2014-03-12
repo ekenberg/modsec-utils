@@ -1,0 +1,4 @@
+#!/bin/bash
+LOG=/usr/local/apache2/logs/error_log
+
+awk 's += $1; END {printf "%7s TOTAL\n", s}' < <(grep denied "$LOG" | grep -o -E 'TX:[[:digit:]]+[^: ]+' | sort | uniq -c | sort -nr)

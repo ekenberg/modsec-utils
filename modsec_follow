@@ -1,0 +1,3 @@
+#!/bin/bash
+
+tail -f /usr/local/apache2/logs/error_log | grep --color=always -i -E 'total [0-9a-zA-Z]* *score: [[:digit:]]+|hostname "[-a-zA-Z0-9\.]*"|TX:[[:digit:]]+[^: ]+'

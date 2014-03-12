@@ -1,0 +1,33 @@
+#!/bin/bash
+
+LOG=/usr/local/apache2/logs/modsec_audit.log
+
+IFS= read -r -d '' USAGE <<"EOF"
+  modsec_audit_extract_by_uid uid [ logfile[.gz] ]
+
+  Mandatory argument unique uid, like Uvig1Vnd@gMAAG4QgB4AAABS
+  Will display everything relevant from modsec_audit.log
+  or in optionally supplied (and maybe gzipped) modsec_audit.log file
+EOF
+
+if [ $# -lt 1 -o $# -gt 2 ]; then
+    echo "$USAGE"
+    exit 1
+fi
+
+if [ $# -eq 2 ]; then
+    LOG="$2"
+fi
+
+uid=$1
+
+awk "
+   /^--.*-A--\$/ {t=\$0}                                        # save last delimiter
+   / $uid / {d=t; gsub(/A--\$/,\"\", d); print t; print; next}  # print delimiter + line if uid found, next
+   ! d {next}
+   \$0 ~ d\"Z--\" {print; exit}                                 # print and exit if delimiter found
+   \$0 ~ d {print; n=1; next}                                   # print, n=1, next if delimiter found
+   /^--/ {n=0; next}                                            # other delimiter, ignore
+   n                                                            # print if n
+
+" < <(zcat -f "$LOG") | sed 's/^\(--.*-B--\)$/\n\1/'

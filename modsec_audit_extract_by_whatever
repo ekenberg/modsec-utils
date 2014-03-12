@@ -1,0 +1,30 @@
+#!/bin/bash
+
+LOG=/usr/local/apache2/logs/modsec_audit.log
+XBY=/usr/local/apache2/logs/modsec_audit_extract_by_uid
+
+IFS= read -r -d '' USAGE <<"EOF"
+  modsec_audit_extract_by_whatever pattern
+
+  grep-like extract every request matching pattern
+  in file $LOG
+  display in orderly fashion using modsec_audit_extract_by_uid
+EOF
+
+if [ $# -ne 1 ]; then
+    echo "$USAGE"
+    exit 1
+fi
+
+arg=$(printf "%q" "$1")
+
+awk -v arg="$arg" "
+   l ~ /^--.*-A--\$/ {u=\$3; d=0}                               # if last line was start, save uid in u, reset d
+   l=\$0 {}                                                     # save this line in l
+   match(\$0, arg) && ! d {print u; d=1}                        # if matches $arg, print uid (u) unless d
+" "$LOG" | while read -r uid; do
+    $XBY $uid | grep --color "$arg\|"
+    echo
+    read -p ">> NEXT <<" -n 1 _ </dev/tty
+    echo
+done
