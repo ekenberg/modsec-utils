@@ -1,7 +1,7 @@
 modsec-utils
 ============
 
-Various util scripts for Apache ModSecurity
+Utils for Apache ModSecurity
 
 ### Tools for modsec_audit.log
 
